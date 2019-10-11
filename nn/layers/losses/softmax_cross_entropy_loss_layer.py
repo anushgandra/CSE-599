@@ -11,6 +11,8 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
             sum reduction means the results should be summed.
         """
         self.reduction = reduction
+        self.input_softmax = None
+        self.targets = None
         super(SoftmaxCrossEntropyLossLayer, self).__init__(parent)
 
     def forward(self, logits, targets, axis=-1) -> float:
@@ -25,12 +27,26 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         max_elements = np.amax(logits,axis=1)
         logits_subt = np.transpose(np.transpose(logits)-max_elements)
 
-        exp_logits = np.exp(logits_sub) 
+        exp_logits = np.exp(logits_subt) 
         exp_logits_sum = np.sum(exp_logits,axis=1)
 
         softmax = exp_logits/exp_logits_sum[:,None]
+        
+        self.input_softmax = softmax
+        self.targets = targets
 
         log_softmax = np.log(softmax)
+        
+        losses = -1*np.dot(log_softmax,targets)
+
+        if(self.reduction == "mean"):
+            loss = np.average(losses)
+        else:
+            loss = np.sum(losses)
+
+        return loss
+
+
         
 
     def backward(self) -> np.ndarray:
@@ -38,5 +54,5 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         Takes no inputs (should reuse computation from the forward pass)
         :return: gradients wrt the logits the same shape as the input logits
         """
-        # TODO
-        return None
+        y = self.input_softmax - targets 
+        return y
