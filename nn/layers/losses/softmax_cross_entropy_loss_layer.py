@@ -24,27 +24,26 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         :return: single float of the loss.
         """
         #assuming logits is 2D:
-        max_elements = np.amax(logits,axis=1)
-        logits_subt = np.transpose(np.transpose(logits)-max_elements)
+        logits = np.transpose(np.transpose(logits) - np.amax(logits,axis=axis))
+        logits = np.exp(logits)
+        temp = np.sum(logits,axis=axis,keepdims=True)
+        logits = logits/temp
+        self.input_softmax = logits
+        self.targtes = targets
+        log_logits = np.log(logits)
+        H = np.zeros(targets.shape)
+        for i in range(0,targets.size):
+            H[i] =  -1*log_logits[i,targets[i]]
 
-        exp_logits = np.exp(logits_subt) 
-        exp_logits_sum = np.sum(exp_logits,axis=1)
-
-        softmax = exp_logits/exp_logits_sum[:,None]
-        
-        self.input_softmax = softmax
-        self.targets = targets
-
-        log_softmax = np.log(softmax)
-        
-        losses = -1*np.dot(log_softmax,targets)
-
-        if(self.reduction == "mean"):
-            loss = np.average(losses)
+        if(self.reduction == "sum"):
+            H = np.sum(H[i])
         else:
-            loss = np.sum(losses)
+            H = np.sum(H[i])/np.size(logits,axis)
+        return H
 
-        return loss
+        
+
+        
 
 
         

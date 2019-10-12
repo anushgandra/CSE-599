@@ -15,7 +15,7 @@ class ReLULayer(Layer):
         return y
 
     def backward(self, previous_partial_gradient):
-        y = previous_partial_gradient*(self.data>0)
+        y = np.multiply(previous_partial_gradient,(self.data>0))
         return y
 
 
