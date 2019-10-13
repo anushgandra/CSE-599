@@ -27,11 +27,11 @@ class Layer(object):
         return type(self).__name__
 
     @property
-    def parent(self) -> Optional[Union[Tuple['Layer'], 'Layer']]:
+    def parent(self) -> Optional[Union[Tuple["Layer"], "Layer"]]:
         return self._parent
 
     @parent.setter
-    def parent(self, val: Union[Tuple['Layer'], 'Layer']):
+    def parent(self, val: Union[Tuple["Layer"], "Layer"]):
         self.set_parent(val)
 
     def set_parent(self, val):
