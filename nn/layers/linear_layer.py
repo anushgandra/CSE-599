@@ -11,7 +11,7 @@ class LinearLayer(Layer):
         super(LinearLayer, self).__init__(parent)
         self.bias = Parameter(np.zeros((1, output_size), dtype=np.float32))
         self.weight = Parameter(0.01*np.random.randn(input_size,output_size),dtype=np.float32)
-       #self.initialize()
+        self.initialize()
         self.data = None
 
     def forward(self, data: np.ndarray) -> np.ndarray:

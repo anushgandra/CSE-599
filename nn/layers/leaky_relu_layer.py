@@ -7,11 +7,17 @@ class LeakyReLULayer(Layer):
     def __init__(self, slope: float = 0.1, parent=None):
         super(LeakyReLULayer, self).__init__(parent)
         self.slope = slope
+        self.data = None
 
     def forward(self, data):
-        # TODO
-        return None
+        self.data = data
+        data[data<=0] = self.slope*data[data<=0]
+        return data
 
     def backward(self, previous_partial_gradient):
-        # TODO
-        return None
+        self.data[self.data>0] = 1
+        self.data[self.data<=0] = self.slope
+        print(previous_partial_gradient.shape)
+        print(self.data.shape)
+        output = self.data*previous_partial_gradient
+        return output

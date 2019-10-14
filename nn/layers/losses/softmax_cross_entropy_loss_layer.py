@@ -24,22 +24,21 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         :return: single float of the loss.
         """
         #assuming logits is 2D:
+        
         num_features = np.size(logits,axis)
         num_batches = targets.size
         one_hot_encoding = np.zeros((num_batches,num_features),dtype=np.float32)
         rows = np.arange(num_batches)
         one_hot_encoding[rows,targets] = 1.0
 
-        logits = logits - np.amax(logits,axis=axis,keepdims=True)
-        logits = np.exp(logits)
-        temp = np.sum(logits,axis=axis,keepdims=True)
-        logits = logits/temp
-        self.input_softmax = logits
-    
         self.targets = one_hot_encoding
-        
 
-        log_logits = np.log(logits)
+        logits = logits - np.amax(logits,axis=axis,keepdims=True)
+        
+        log_logits = logits - np.log(np.sum(np.exp(logits),axis=axis,keepdims=True))
+
+        self.input_softmax = np.exp(logits)/(np.sum(np.exp(logits),axis=axis,keepdims=True))
+        
         H = -1*log_logits*one_hot_encoding
         temp2 = np.nonzero(H)
         H = H[temp2[0],temp2[1]]
@@ -47,7 +46,7 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         if(self.reduction == "sum"):
             H = np.sum(H)
         else:
-            H = np.sum(H)/np.size(H)
+            H = np.sum(H)/num_batches
         return H
 
 
@@ -58,5 +57,5 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         """
         y = (self.input_softmax - self.targets)
         if(self.reduction=="mean"):
-            y = y/(self.targets.shape[0])
+            y = y/np.shape(self.targets)[0]
         return y
