@@ -46,7 +46,7 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
         if(self.reduction == "sum"):
             H = np.sum(H)
         else:
-            H = np.sum(H)/num_batches
+            H = np.divide(np.sum(H),num_batches)
         return H
 
 

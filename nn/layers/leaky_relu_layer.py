@@ -17,7 +17,5 @@ class LeakyReLULayer(Layer):
     def backward(self, previous_partial_gradient):
         self.data[self.data>0] = 1
         self.data[self.data<=0] = self.slope
-        print(previous_partial_gradient.shape)
-        print(self.data.shape)
         output = self.data*previous_partial_gradient
         return output
