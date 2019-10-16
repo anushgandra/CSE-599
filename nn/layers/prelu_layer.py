@@ -25,20 +25,19 @@ class PReLULayer(Layer):
     
 
     def backward(self, previous_partial_gradient):
-        out = np.copy(self.data)
-        temp1 = np.argwhere(out>0)
-        out[out<=0] = 1
-        
-        out = out*np.reshape(self.slope.data,(1,self.size,1))
-        
-        out[temp1[:,0],temp1[:,1]] = 1
+        out1 = self.data>0
+        out2 = (self.data<=0)*np.reshape(self.slope.data,(1,self.size,1))
 
-        output = np.multiply(out,previous_partial_gradient)
+        output = np.multiply((out1+out2),previous_partial_gradient)
 
         grad_mult = np.copy(self.data)
         grad_mult[grad_mult>0] = 0
 
         grad = np.multiply(previous_partial_gradient,grad_mult)
 
-        self.slope.grad = np.sum(np.sum(grad,axis=0),axis=1)
+        if (self.size<2):
+            self.slope.grad = np.sum(grad)
+        else:
+            self.slope.grad = np.sum(np.sum(grad,axis=0),axis=1)
+            
         return output

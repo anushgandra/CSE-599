@@ -24,11 +24,16 @@ temp1 = np.argwhere(out4>0)
 out4[out4<=0] = 1
 out4 = out4*slopes
 
-out4[temp1[:,0],temp1[:,1]] = 1
+out4[inputs>0] = 1
 
 print(inputs)
 print(slopes)
 print(out4)
+
+one = inputs>0
+two = (inputs<=0)*slopes
+
+print(one+two)
 
 grad = np.copy(inputs)
 grad[grad>0] = 0
