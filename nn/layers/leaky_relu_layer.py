@@ -4,7 +4,7 @@ from .layer import Layer
 
 
 class LeakyReLULayer(Layer):
-    def __init__(self, slope: float = 0.1, parent=None):
+    def __init__(self, slope: float = -0.1, parent=None):
         super(LeakyReLULayer, self).__init__(parent)
         self.slope = slope
         self.data = None

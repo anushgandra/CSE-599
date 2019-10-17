@@ -21,6 +21,7 @@ class PReLULayer(Layer):
         out = out1+out2
 
         self.data = data
+        print(self.slope)
         return out
     
 

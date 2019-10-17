@@ -20,8 +20,7 @@ class LinearLayer(Layer):
         :param data: n X d array (batch x features)
         :return: n X c array (batch x channels)
         """
-        y = np.matmul(data,self.weight.data)
-        y = np.add(y,self.bias.data)
+        y = np.matmul(data,self.weight.data)+self.bias.data
         self.data = data
         return y
 
