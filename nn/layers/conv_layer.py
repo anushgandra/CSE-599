@@ -28,7 +28,6 @@ class ConvLayer(Layer):
         
         s = input_shape
         n = s[0]
-        d = s[1]
         h = s[2]
         w = s[3]
 
@@ -40,15 +39,10 @@ class ConvLayer(Layer):
              
         for l in prange(n):
             for o in prange(c):
-                for k in range(d):
-                    for j in range(padding,jlim,stride):
-                        for i in range(padding,ilim,stride):
-                            for n in range(kernel_size):
-                                for m in range(kernel_size):
-                                    out[l,o,(j-padding)//stride,(i-padding)//stride] += (data[l,k,j-(padding)+n,i-(padding)+m]*weights[k,o,n,m])
+                for j in range(padding,jlim,stride):
+                    for i in range(padding,ilim,stride):
+                        out[l,o,(j-padding)//stride,(i-padding)//stride] = np.sum((data[l,:,j-(padding):j+(kernel_size)-padding,i-(padding):i+(kernel_size)-padding]*weights[:,o,:,:]))+bias[o]
                                                                         
-                            out[l,o,(j-padding)//stride,(i-padding)//stride] += bias[o]
-
         return out
 
     def forward(self, data):
