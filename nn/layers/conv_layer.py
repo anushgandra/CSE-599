@@ -68,26 +68,31 @@ class ConvLayer(Layer):
         # TODO
         # data is N x C x H x W
         # kernel is COld x CNew x K x K
+        
         [n,d,hin,win] =  padded_data.shape
         [n,c,hout,wout] = prev_grad.shape
         
         k = weight.shape[2]
         # First I'll compute weights_grad
         
-##        jlim = (hin-hout) + 1
-##        ilim = (win-wout) + 1
+        jlim = (hin-hout) + 1
+        ilim = (win-wout) + 1
+##
+##        print("weight grad shape: ",weight_grad.shape)
+##        print("jlim: ",jlim)
+##        print("ilim: ",ilim)
+##        print("d: ", d)
+##        print("c: ", c)
+        
 
 ##        for l in range(d):
 ##            for o in range(c):
 ##                for j in range(0,jlim,stride):
 ##                    for i in range(0,ilim,stride):
-##                        weight_grad[l,o,j//stride,i//stride] = np.sum(padded_data_transpose[l,:,j:j+k,i:i+k]*prev_grad[:,c,:,:])
-                        
+##                        temp = padded_data[:,l,j:j+hout,i:i+wout]*prev_grad[:,c,:,:]
+##                        weight_grad[l,o,j//stride,i//stride] = np.sum(temp)
+                       
         # Now for gradient with respect to inputs and bias grad
-
-##        jlim = hout
-##        ilim = wout
-
         for l in range(n):
             padded_data_slice = padded_data[l]
             padded_output_slice = padded_output[l]
@@ -99,15 +104,17 @@ class ConvLayer(Layer):
                         w1 = i*stride
                         w2 = i*stride+k
                         padded_data_slice_smaller = padded_data_slice[:,h1:h2,w1:w2]
-                        padded_output_slice[:,h1:h2,w1:w1] += weight[:,v,:,:]*prev_grad[l,v,j,i]
-                        #output[l,:,h1:h2,w1:w2] += (prev_grad[l,o,j,i]*weight[:,o,:,:])
+                        padded_output_slice[:,h1:h2,w1:w2] += weight[:,v,:,:]*prev_grad[l,v,j,i]
+                        #padded_output[l,d,h1:h2,w1:w2] += np.sum((prev_grad[l,v,j,i]*weight[d,:,:,:]),axis=0)
                         bias_grad[v] += prev_grad[l,v,j,i]
-                        #weight_grad[:,o,:,:] += padded_data_slice_smaller*prev_grad[l,o,j,i]
+                        weight_grad[:,v,:,:] += padded_data_slice_smaller*prev_grad[l,v,j,i]
             if(padding == 0):
-                output[l,:,:,:] = padded_output_slice[:,:,:]
+                output[l,:,:,:] = padded_output[l,:,:,:]
             else:
-                output[l,:,:,:] = padded_output_slice[:,padding:-padding,padding:-padding]
+                output[l,:,:,:] = padded_output[l,:,padding:-padding,padding:-padding]
+        
         return(output)
+    
                  
     def backward(self, previous_partial_gradient):
         padded_output_array = np.zeros(self.padded_data.shape,dtype=np.float32)
