@@ -18,8 +18,9 @@ class SoftmaxCrossEntropyLossLayer(LossLayer):
     def forward(self, logits, targets, axis=-1) -> float:
         """
 
-        :param logits: ND non-softmaxed outputs. All dimensions (after removing the "axis" dimension) should have the same length as targets
-        :param targets: (N-1)D class id integers.
+        :param logits: N-Dimensional non-softmaxed outputs. All dimensions (after removing the "axis" dimension) should have the same length as targets.
+            Example: inputs might be (4 x 10), targets (4) and axis 1.
+        :param targets: (N-1)-Dimensional class id integers.
         :param axis: Dimension over which to run the Softmax and compare labels.
         :return: single float of the loss.
         """
