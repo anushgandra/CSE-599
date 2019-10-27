@@ -34,16 +34,10 @@ class ConvLayer(Layer):
         ws = weights.shape
         c = ws[1]
 
-        jlim = (h-kernel_size) + 1 #+ padding
-        ilim = (w-kernel_size) + 1 #+ padding
+        jlim = (h-kernel_size) + 1 
+        ilim = (w-kernel_size) + 1 
 
-##        print("prev_shape: ",prev_shape)
-##        print("padded data shape: ",s)
-##        print("jlim: ",jlim)
-##        print("ilim: ",ilim)
-##        print("Weight shape: ",weights.shape)
-##        print("padding: ",padding)
-             
+                  
         for l in prange(n):
             for o in prange(c):
                 for j in range(0,jlim,stride):
@@ -64,7 +58,7 @@ class ConvLayer(Layer):
 
     @staticmethod
     @njit(cache=True, parallel=True)
-    def backward_numba(padded_data, prev_grad, weight, weight_grad, bias_grad,output, padded_output, padding, stride):
+    def backward_numba(padded_data, prev_grad, weight, weight_grad, bias_grad,padded_output, padding, stride):
         # TODO
         # data is N x C x H x W
         # kernel is COld x CNew x K x K
@@ -73,56 +67,32 @@ class ConvLayer(Layer):
         [n,c,hout,wout] = prev_grad.shape
         
         k = weight.shape[2]
-        # First I'll compute weights_grad
-        
-        jlim = (hin-hout) + 1
-        ilim = (win-wout) + 1
-##
-##        print("weight grad shape: ",weight_grad.shape)
-##        print("jlim: ",jlim)
-##        print("ilim: ",ilim)
-##        print("d: ", d)
-##        print("c: ", c)
-        
-
-##        for l in range(d):
-##            for o in range(c):
-##                for j in range(0,jlim,stride):
-##                    for i in range(0,ilim,stride):
-##                        temp = padded_data[:,l,j:j+hout,i:i+wout]*prev_grad[:,c,:,:]
-##                        weight_grad[l,o,j//stride,i//stride] = np.sum(temp)
-                       
-        # Now for gradient with respect to inputs and bias grad
+              
         for l in range(n):
-            padded_data_slice = padded_data[l]
-            padded_output_slice = padded_output[l]
             for v in range(c):
                 for j in range(hout):
                     for i in range(wout):
                         h1 = j*stride
-                        h2 = j*stride+k
+                        h2 = h1+k
                         w1 = i*stride
-                        w2 = i*stride+k
-                        padded_data_slice_smaller = padded_data_slice[:,h1:h2,w1:w2]
-                        padded_output_slice[:,h1:h2,w1:w2] += weight[:,v,:,:]*prev_grad[l,v,j,i]
-                        #padded_output[l,d,h1:h2,w1:w2] += np.sum((prev_grad[l,v,j,i]*weight[d,:,:,:]),axis=0)
-                        bias_grad[v] += prev_grad[l,v,j,i]
-                        weight_grad[:,v,:,:] += padded_data_slice_smaller*prev_grad[l,v,j,i]
-            if(padding == 0):
-                output[l,:,:,:] = padded_output[l,:,:,:]
-            else:
-                output[l,:,:,:] = padded_output[l,:,padding:-padding,padding:-padding]
+                        w2 = w1+k
+                        temp = padded_data[l,:,h1:h2,w1:w2]*prev_grad[l,v,j,i]
+                        weight_grad[:,v,:,:] += temp
+                        bias_grad[v]+= prev_grad[l,v,j,i]
+                        padded_output[l,:,h1:h2,w1:w2] += prev_grad[l,v,j,i]*weight[:,v,:,:]
+        if(padding == 0):
+            return(padded_output[:,:,:,:])
+        else:
+            return(padded_output[:,:,padding:-padding,padding:-padding])
         
-        return(output)
-    
-                 
+                        
     def backward(self, previous_partial_gradient):
         padded_output_array = np.zeros(self.padded_data.shape,dtype=np.float32)
 
         output_array = np.zeros(self.data.shape,dtype=np.float32)
 
            
-        back = self.backward_numba(self.padded_data, previous_partial_gradient, self.weight.data, self.weight.grad, self.bias.grad,output_array,padded_output_array, self.padding, self.stride)
+        back = self.backward_numba(self.padded_data, previous_partial_gradient, self.weight.data, self.weight.grad, self.bias.grad,padded_output_array, self.padding, self.stride)
 
         
         return back
