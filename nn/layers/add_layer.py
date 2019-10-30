@@ -21,9 +21,6 @@ class AddLayer(Layer):
         # TODO: You should return as many gradients as there were inputs.
         #   So for adding two tensors, you should return two gradient tensors corresponding to the
         #   order they were in the input.
-        output = np.zeros(self.data.shape,dtype=np.float32)
-        
-        for i in range(self.data.shape[0]):
-            output[i] = previous_partial_gradient
-        
+        output = (previous_partial_gradient,)*self.data.shape[0]
+                
         return output
