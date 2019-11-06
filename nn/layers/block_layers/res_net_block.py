@@ -19,5 +19,5 @@ class ResNetBlock(LayerUsingLayer):
     def forward(self, data):
         temp1 = self.conv_layers.forward(data)
         temp2 = self.add_layer.forward([data,temp1])
-        output = self.relu2(temp2)
+        output = self.relu2.forward(temp2)
         return output

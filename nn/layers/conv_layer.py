@@ -67,9 +67,20 @@ class ConvLayer(Layer):
         [n,c,hout,wout] = prev_grad.shape
         
         k = weight.shape[2]
-              
-        for l in range(n):
+
+                      
+        for l in prange(n):
             for v in range(c):
+                for j in range(hout):
+                    for i in range(wout):
+                        h1 = j*stride
+                        h2 = h1+k
+                        w1 = i*stride
+                        w2 = w1+k
+                        padded_output[l,:,h1:h2,w1:w2] += prev_grad[l,v,j,i]*weight[:,v,:,:]
+
+        for v in prange(c):
+            for l in range(n):
                 for j in range(hout):
                     for i in range(wout):
                         h1 = j*stride
@@ -79,7 +90,8 @@ class ConvLayer(Layer):
                         temp = padded_data[l,:,h1:h2,w1:w2]*prev_grad[l,v,j,i]
                         weight_grad[:,v,:,:] += temp
                         bias_grad[v]+= prev_grad[l,v,j,i]
-                        padded_output[l,:,h1:h2,w1:w2] += prev_grad[l,v,j,i]*weight[:,v,:,:]
+                        
+                        
         if(padding == 0):
             return(padded_output[:,:,:,:])
         else:
@@ -89,7 +101,7 @@ class ConvLayer(Layer):
     def backward(self, previous_partial_gradient):
         padded_output_array = np.zeros(self.padded_data.shape,dtype=np.float32)
 
-        output_array = np.zeros(self.data.shape,dtype=np.float32)
+        #output_array = np.zeros(self.data.shape,dtype=np.float32)
 
            
         back = self.backward_numba(self.padded_data, previous_partial_gradient, self.weight.data, self.weight.grad, self.bias.grad,padded_output_array, self.padding, self.stride)
